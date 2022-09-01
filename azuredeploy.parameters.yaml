@@ -1,0 +1,56 @@
+$schema: https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#
+contentVersion: 1.0.0.0
+parameters:
+  # NAMING STANDARDS
+  platformCode:
+    value: data
+  workload:
+    value: dra
+  regionCode:
+    value: vic
+  environmentCode:
+    value: ppr2
+  location:
+    value: australiasoutheast
+  departmentcode:
+    value: it
+
+  # TAGS
+  costCenter:
+    value: it
+  accountCode:
+    value: NOT_SET
+  projectCode:
+    value: NOT_SET
+  application:
+    value: datafactory
+  networkTier:
+    value: frontend
+  schedule:
+    value: 24x7
+  projectName:
+    value: NOT_SET
+  applicationOwner:
+    value: NOT_SET
+
+  # RESOURCE SPECIFIC
+  # SQL parameters
+  sqlAdministratorLogin:
+    value: dbadmin
+  sqlAdministratorLoginPassword:
+    reference:
+      keyvault:
+        id: /subscriptions/f83b4716-038f-4bbb-8378-09af6e2eb544/resourceGroups/it-kv-data-rg-epa-vic-nprd/providers/Microsoft.KeyVault/vaults/datakvepavicnprd
+      secretName: draDbAdminPassword
+  sqlCollation:
+    value: SQL_Latin1_General_CP1_CI_AS
+  sqlZoneRedundant:
+    value: false
+  
+  # Integration Runtime parameters
+  irNodeCount:
+    value: 1
+  irNodeSize:
+    value: Standard_D2_v2
+  irMaxParallelExecutionsPerNode:
+    value: 8

@@ -1,0 +1,24 @@
+{
+  "parameters": [
+    "organisationCode",
+    "platform",
+    "platformCode",
+    "workload",
+    "region",
+    "regionCode",
+    "environment",
+    "environmentCode",
+    "resourceInstance",
+    "costCenter",
+    "accountCode",
+    "projectCode",
+    "application",
+    "networkTier",
+    "schedule",
+    "projectName",
+    "applicationOwner"
+  ],
+  "resources": [
+    "parameters('"
+  ]
+}

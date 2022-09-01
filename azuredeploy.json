@@ -1,0 +1,372 @@
+{
+  "$schema": "http://schema.management.azure.com/schemas/2014-04-01-preview/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "organisationCode": {
+      "type": "string",
+      "metadata": {
+        "description": "The organisation code."
+      },
+      "allowedValues": [
+        "EPA"
+      ],
+      "defaultValue": "EPA"
+    },
+    "departmentCode": {
+      "type": "string",
+      "metadata": {
+        "description": "The department code."
+      },
+      "allowedValues": [
+        "it",
+        "marketing"
+      ],
+      "defaultValue": "it"
+    },
+    "platformCode": {
+      "type": "string",
+      "metadata": {
+        "description": "The platform code."
+      },
+      "allowedValues": [
+        "fatm",
+        "contact",
+        "crm",
+        "data",
+        "digital",
+        "engin",
+        "field",
+        "fraud",
+        "gis",
+        "hcm",
+        "inbco",
+        "outco",
+        "infra",
+        "integ",
+        "km",
+        "market",
+        "sec",
+        "serv"
+      ]
+    },
+    "workload": {
+      "type": "string",
+      "metadata": {
+        "description": "The workload name that is unique to related resources. It can be a project name."
+      }
+    },
+    "regionCode": {
+      "type": "string",
+      "metadata": {
+        "description": "The region code."
+      },
+      "allowedValues": [
+        "nsw",
+        "vic",
+        "glb",
+        "sea"
+      ],
+      "defaultValue": "vic"
+    },
+    "location": {
+      "type": "string",
+      "metadata": {
+        "description": "The region name where the resource is hosted, especially the region is indicated as 'global'."
+      },
+      "defaultValue": ""
+    },
+    "environmentCode": {
+      "type": "string",
+      "metadata": {
+        "description": "The environment code."
+      },
+      "allowedValues": [
+        "prd",
+        "nprd",
+        "ppr",
+        "tst",
+        "dev",
+        "uat",
+        "poc",
+        "ppr2"
+      ],
+      "defaultValue": "dev"
+    },
+    "regionLookup": {
+      "type": "object",
+      "metadata": {
+        "description": "The reference to lookup region. DO NOT TOUCH."
+      },
+      "defaultValue": {
+        "nsw": "australiaeast",
+        "vic": "australiasoutheast",
+        "sea": "southeastasia"
+      }
+    },
+    "costCenter": {
+      "type": "string",
+      "metadata": {
+        "description": "The cost centre or department that this resource should be billed to."
+      },
+      "minLength": 1
+    },
+    "accountCode": {
+      "type": "string",
+      "metadata": {
+        "description": "The account code."
+      },
+      "defaultValue": ""
+    },
+    "projectName": {
+      "type": "string",
+      "metadata": {
+        "description": "The project name."
+      },
+      "defaultValue": ""
+    },
+    "projectCode": {
+      "type": "string",
+      "metadata": {
+        "description": "The project code."
+      },
+      "defaultValue": ""
+    },
+    "application": {
+      "type": "string",
+      "metadata": {
+        "description": "The name of application."
+      },
+      "minLength": 1
+    },
+    "applicationOwner": {
+      "type": "string",
+      "metadata": {
+        "description": "The email address of the person or team responsible for the project long-term."
+      },
+      "defaultValue": ""
+    },
+    "networkTier": {
+      "type": "string",
+      "metadata": {
+        "description": "The network tier of the resource."
+      },
+      "minLength": 1
+    },
+    "schedule": {
+      "type": "string",
+      "metadata": {
+        "description": "Schedule of the resource."
+      },
+      "minLength": 1
+    },
+    "sqlAdministratorLogin": {
+      "type": "string"
+    },
+    "sqlAdministratorLoginPassword": {
+      "type": "securestring"
+    },
+    "sqlZoneRedundant": {
+      "type": "bool"
+    },
+    "sqlCollation": {
+      "type": "string"
+    },
+    "irNodeCount": {
+      "type": "int"
+    },
+    "irNodeSize": {
+      "type": "string"
+    },
+    "irMaxParallelExecutionsPerNode": {
+      "type": "int"
+    },
+    "customVirtualNetworkId":{
+        "type": "string"
+    },
+    "customPublicSubnetName":{
+        "type": "string"
+    },
+    "customPrivateSubnetName":{
+        "type": "string"
+    }
+  },
+  "variables": {
+    "location": "[if(equals(parameters('regionCode'), 'glb'), parameters('location'), parameters('regionLookup')[parameters('regionCode')])]",
+    "tags": {
+      "costcenter": "[parameters('costCenter')]",
+      "accountcode": "[parameters('accountCode')]",
+      "projectcode": "[parameters('projectCode')]",
+      "env": "[parameters('environmentCode')]",
+      "platform": "[parameters('platformCode')]",
+      "application": "[parameters('application')]",
+      "networktier": "[parameters('networkTier')]",
+      "schedule": "[parameters('schedule')]",
+      "projectname": "[parameters('projectName')]",
+      "applicationowner": "[parameters('applicationOwner')]"
+    },
+    "deployments": {
+      "apiVersion": "[providers('Microsoft.Resources', 'deployments').apiVersions[0]]"
+    },
+    "storageAccount": {
+      "name": "[toLower(concat(parameters('workload'), 'mainst', parameters('platformCode'), parameters('regionCode'), parameters('environmentCode')))]",
+      "kind": "StorageV2",
+      "skuName": "Standard_LRS",
+      "skuTier": "Standard",
+      "accessTier": "Hot"
+    },
+    "databricks": {
+      "name": "[toLower(concat(parameters('departmentCode'), '-', 'dra', '-', parameters('platformCode'), '-databricksvnet-', parameters('organisationCode'), '-', parameters('regionCode'), '-', parameters('environmentCode')))]",
+      "managedResourceGroupName": "[toLower(concat(parameters('departmentCode'), '-', parameters('workload'), 'dbvnet-', parameters('platformCode'), '-rg-', parameters('organisationCode'), '-', parameters('regionCode'), '-', parameters('environmentCode')))]",
+      "skuTier": "premium"
+    },
+    "dataFactory": {
+      "location": "australiaeast",
+      "apiVersion": "[providers('Microsoft.Datafactory', 'factories').apiVersions[0]]",
+      "name": "[toLower(concat(parameters('departmentCode'), '-', parameters('workload'), '-', parameters('platformCode'), '-datafactory-', parameters('organisationCode'), '-', parameters('regionCode'), '-', parameters('environmentCode')))]"
+    },
+    "sqlServer": {
+      "apiVersion": "[providers('Microsoft.Sql', 'servers').apiVersions[0]]",
+      "name": "[tolower(concat(parameters('departmentcode'), '-', parameters('workload'), '-', parameters('platformCode'), '-sqlsvr01-', parameters('organisationCode'), '-', parameters('regionCode'), '-', parameters('environmentCode')))]",
+      "administratorLogin": "[parameters('sqlAdministratorLogin')]",
+      "administratorLoginPassword": "[parameters('sqlAdministratorLoginPassword')]",
+      "version": "12.0"
+    },
+    "database": {
+      "apiVersion": "[providers('Microsoft.Sql', 'servers/databases').apiVersions[0]]",
+      "name_db01": "[tolower(concat(parameters('departmentcode'), '-', parameters('workload'), '-', parameters('platformCode'), '-db01-', parameters('organisationCode'), '-', parameters('regionCode'), '-', parameters('environmentCode')))]",
+      "size_db01": "535797170176",
+      "name_db02": "[tolower(concat(parameters('departmentcode'), '-', parameters('workload'), '-', parameters('platformCode'), '-db02-', parameters('organisationCode'), '-', parameters('regionCode'), '-', parameters('environmentCode')))]",
+      "size_db02": "10737418240",
+      "collation": "[parameters('sqlCollation')]",
+      "zoneRedundant": "[parameters('sqlZoneRedundant')]",
+      "licensetype": "LicenseIncluded"
+    },
+    "integrationRuntime": {
+      "apiVersion": "[providers('Microsoft.Datafactory', 'factories').apiVersions[0]]",
+      "name": "[tolower(concat(parameters('departmentcode'), '-', parameters('workload'), '-', parameters('platformCode'), '-ir0-', parameters('organisationCode'), '-', parameters('regionCode'), '-', parameters('environmentCode')))]",
+      "numberofNodes": "[parameters('irNodeCount')]",
+      "nodeSize": "[parameters('irNodeSize')]",
+      "maxParallelExecutionsPerNode": "[parameters('irMaxParallelExecutionsPerNode')]",
+      "type": "Managed",
+      "catalogPricingTier": "Basic",
+      "catalogServerEndpoint": "[concat(variables('sqlServer').name, '.database.windows.net')]",
+      "catalogAdminUserName": "[parameters('sqlAdministratorLogin')]",
+      "catalogAdminPassword": "[parameters('sqlAdministratorLoginPassword')]"
+    },
+    "fileShare": {
+      "quota": 2000,
+      "name": "[concat(variables('storageAccount').name, '/default/', parameters('workload'), 'share', parameters('environmentCode'))]",
+      "apiVersion": "2019-06-01"
+    }
+  },
+  "resources": [
+    {
+      "comments": "### Data Factory ###",
+      "name": "[variables('dataFactory').name]",
+      "apiVersion": "[variables('dataFactory').apiVersion]",
+      "type": "Microsoft.DataFactory/factories",
+      "location": "[variables('dataFactory').location]",
+      "properties": {},
+      "resources": [
+        {
+          "type": "integrationRuntimes",
+          "name": "[variables('integrationRuntime').name]",
+          "dependsOn": [
+            "[variables('datafactory').name]"
+          ],
+          "apiVersion": "[variables('integrationRuntime').apiVersion]",
+          "properties": {
+            "type": "[variables('integrationRuntime').type]",
+            "typeProperties": {
+              "computeProperties": {
+                "location": "[variables('dataFactory').location]",
+                "nodeSize": "[variables('integrationRuntime').nodeSize]",
+                "numberofNodes": "[variables('integrationRuntime').numberofNodes]",
+                "maxParallelExecutionsPerNode": "[variables('integrationRuntime').maxParallelExecutionsPerNode]"
+              },
+              "ssisProperties": {
+                "catalogInfo": {
+                  "catalogServerEndpoint": "[variables('integrationRuntime').catalogServerEndpoint]",
+                  "catalogAdminUserName": "[variables('integrationRuntime').catalogAdminUserName]",
+                  "catalogAdminPassword": "[variables('integrationRuntime').catalogAdminPassword]",
+                  "catalogPricingTier": "[variables('integrationRuntime').catalogPricingTier]"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "comments": "### Storage Account ###",
+      "type": "Microsoft.Storage/storageAccounts",
+      "name": "[variables('storageAccount').name]",
+      "apiVersion": "2018-07-01",
+      "location": "[variables('location')]",
+      "tags": "[variables('tags')]",
+      "kind": "[variables('storageAccount').kind]",
+      "sku": {
+        "name": "[variables('storageAccount').skuName]",
+        "tier": "[variables('storageAccount').skuTier]"
+      },
+      "properties": {
+        "accessTier": "[variables('storageAccount').accessTier]"
+      }
+    },
+    {
+      "comments": "### Databricks ###",
+      "type": "Microsoft.Databricks/workspaces",
+      "name": "[variables('databricks').name]",
+      "apiVersion": "2018-04-01",
+      "location": "[variables('location')]",
+      "tags": "[variables('tags')]",
+      "sku": {
+        "name": "[variables('databricks').skuTier]"
+      },
+      "properties": {
+        "ManagedResourceGroupId": "[concat(subscription().id, '/resourceGroups/', variables('databricks').managedResourceGroupName)]",
+        "parameters":{
+            "customVirtualNetworkId": {
+                "value": "[parameters('customVirtualNetworkId')]"
+              },
+              "customPublicSubnetName": {
+                "value": "[parameters('customPublicSubnetName')]"
+              },
+              "customPrivateSubnetName": {
+                "value": "[parameters('customPrivateSubnetName')]"
+              }
+        }
+      }
+    },
+    {
+      "comments": "### SQL Server ###",
+      "apiVersion": "[variables('sqlServer').apiVersion]",
+      "type": "Microsoft.Sql/servers",
+      "location": "[variables('location')]",
+      "tags": "[variables('tags')]",
+      "name": "[variables('sqlServer').name]",
+      "properties": {
+        "administratorLogin": "[variables('sqlServer').administratorLogin]",
+        "administratorLoginPassword": "[variables('sqlServer').administratorLoginPassword]",
+        "version": "[variables('sqlServer').version]"
+      }
+    },
+    {
+      "comments": "### DataBase ###",
+      "apiVersion": "[variables('database').apiVersion]",
+      "type": "Microsoft.Sql/servers/databases",
+      "dependsOn": [
+        "[variables('sqlServer').name]"
+      ],
+      "location": "[variables('location')]",
+      "tags": "[variables('tags')]",
+      "name": "[concat(variables('sqlServer').name, '/', variables('database').name_db01)]",
+      "properties": {
+        "collation": "[variables('database').collation]",
+        "zoneRedundant": "[variables('database').zoneRedundant]",
+        "licenseType": "[variables('database').licensetype]",
+        "maxSizeBytes": "[variables('database').size_db01]"
+      }
+    }
+  ]
+}
