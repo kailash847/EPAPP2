@@ -54,7 +54,7 @@ parameters:
     - vic
     - glb
     - sea
-    defaultValue: vic
+    defaultValue: nsw
   location:
     type: string
     metadata:
