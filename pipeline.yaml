@@ -1,0 +1,25 @@
+name: $(BuildDefinitionName)_$(date:yyyyMMdd)$(rev:.r)
+ 
+trigger: none
+ 
+pr: none
+ 
+stages :        
+  - stage: arm_template_deploy
+    jobs:
+      - job: arm_template_deploy
+        steps:
+              - checkout: self
+ 
+              - task: AzureResourceManagerTemplateDeployment@3
+                inputs:
+                  deploymentScope: 'Resource Group'
+                  azureResourceManagerConnection: 'testparam'
+                  subscriptionId: ''
+                  action: 'Create Or Update Resource Group'
+                  resourceGroupName: 'Testks'
+                  location: 'eastus2'
+                  templateLocation: 'Linked artifact'
+                  csmFile: '$(System.DefaultWorkingDirectory)/azuredeploy.json'
+                  csmParametersFile: '$(System.DefaultWorkingDirectory)/azuredeploy.parameters.json'
+                  deploymentMode: 'Incremental'
